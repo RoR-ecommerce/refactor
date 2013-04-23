@@ -120,22 +120,24 @@ class Emails < ActionMailer::Base
   end
 
   def admin_user_validated(person_id)
-    @admins = Person.admin_emails
     @user   = Person.find( person_id )
-    mail to: @admins
+    mail to: admin_emails
   end
 
   def admin_new_user(person_id)
-    @admins = Person.admin_emails
     @user   = Person.find(person_id)
-    mail to: @admins
+    mail to: admin_emails
   end
 
   # best to move to a log file or something.  or even just inactivating the emails
   def admin_removing_unvalidated_users(user_emails)
-    @admins = Person.admin_emails
     @user_emails  = user_emails
-    mail to: @admins
+    mail to: admin_emails
+  end
+
+  private
+  def admin_emails
+    @admin_emails ||= Person.admin_emails
   end
 
 end
