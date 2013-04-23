@@ -53,6 +53,12 @@ end
 class Person < ActiveRecord::Base
   # Looks like :handle, :team are not set by user.  ASK BUSINESS REQs
   attr_accessible :first_name, :last_name, :email, :admin, :slug, :validated
+
+  validates :first_name,  :presence => true
+  validates :last_name,  :presence => true
+  validates :email,  :presence => true
+  # validates :admin,  :presence => true # default this to true in the migration
+  validates :slug,  :presence => true
 end
 
 
