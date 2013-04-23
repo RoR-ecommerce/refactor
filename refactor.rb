@@ -7,8 +7,6 @@ class People < ActionController::Base
   def create
     @person = Person.new(params[:person])
 
-    slug = "ABC123#{Time.now.to_i.to_s}1239827#{rand(10000)}"
-    @person.slug = slug
     @person.admin = false
 
     if @person.save
@@ -40,7 +38,7 @@ end
 
 class Person < ActiveRecord::Base
   # Looks like :handle, :team are not needed
-  attr_accessible :first_name, :last_name, :email, :admin, :slug, :validated
+  attr_accessible :first_name, :last_name, :email, :admin, :validated
 
   validates :first_name,  :presence => true
   validates :last_name,  :presence => true
@@ -48,12 +46,21 @@ class Person < ActiveRecord::Base
   # validates :admin,  :presence => true # default this to false in the migration
   validates :slug,  :presence => true
 
+  before_validation :set_slug, :on => :create
+
   def handle
     "#{team}#{id}"
   end
 
   def team
     id.odd? ? "UnicornRainbows" : "LaserScorpions"
+  end
+
+  private
+
+  # I don't like this slug.  Why do we need it?
+  def set_slug
+    self.slug = "ABC123#{Time.now.to_i.to_s}1239827#{rand(10000)}"
   end
 end
 
