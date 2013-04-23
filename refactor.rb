@@ -81,6 +81,7 @@ class Person < ActiveRecord::Base
 
   private
 
+  # welcome emails are set on creation
   def send_welcome_emails
     Emails.validate_email(self.id).deliver
     Emails.admin_new_user(self.id).deliver
@@ -104,6 +105,7 @@ end
 
 # Mailer
 
+# Next step move these all to a background job like resque
 class Emails < ActionMailer::Base
   default :from => "foo@example.com"
 
@@ -130,7 +132,7 @@ class Emails < ActionMailer::Base
   end
 
   # best to move to a log file or something.  or even just inactivating the emails
-  def admin_removing_unvalidated_users(admins, user_emails)
+  def admin_removing_unvalidated_users(user_emails)
     @admins = Person.admin_emails
     @user_emails  = user_emails
     mail to: @admins
@@ -152,6 +154,6 @@ namespace :accounts do
       Rails.logger.info "Removing unvalidated user #{person.email}"
       person.destroy # i don't like destroying...  inactive please.
     end
-    Emails.admin_removing_unvalidated_users(Person.admin_emails, @emails).deliver
+    Emails.admin_removing_unvalidated_users(@emails).deliver
   end
 end
