@@ -91,7 +91,7 @@ class Person < ActiveRecord::Base
     set_slug
     set_admin
   end
-  # I don't like this slug.  Why do we need it?
+  # I don't like this slug.  Why do we need it?  UUID
   def set_slug
     self.slug = "ABC123#{Time.now.to_i.to_s}1239827#{rand(10000)}"
   end
