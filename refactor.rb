@@ -11,18 +11,6 @@ class People < ActionController::Base
     @person.slug = slug
     @person.admin = false
 
-    if (Person.count + 1).odd?
-      team = "UnicornRainbows"
-      handle = "UnicornRainbows" + (Person.count + 1).to_s
-      @person.handle = handle
-      @person.team = team
-    else
-      team = "LaserScorpions"
-      handle = "LaserScorpions" + (Person.count + 1).to_s
-      @person.handle = handle
-      @person.team = team
-    end
-
     if @person.save
       Emails.validate_email(@person).deliver
       @admins = Person.where(:admin => true)
@@ -51,14 +39,22 @@ end
 # Model
 
 class Person < ActiveRecord::Base
-  # Looks like :handle, :team are not set by user.  ASK BUSINESS REQs
+  # Looks like :handle, :team are not needed
   attr_accessible :first_name, :last_name, :email, :admin, :slug, :validated
 
   validates :first_name,  :presence => true
   validates :last_name,  :presence => true
   validates :email,  :presence => true
-  # validates :admin,  :presence => true # default this to true in the migration
+  # validates :admin,  :presence => true # default this to false in the migration
   validates :slug,  :presence => true
+
+  def handle
+    "#{team}#{id}"
+  end
+
+  def team
+    id.odd? ? "UnicornRainbows" : "LaserScorpions"
+  end
 end
 
 
