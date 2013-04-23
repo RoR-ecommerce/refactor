@@ -19,9 +19,8 @@ class People < ActionController::Base
       @user.validated = true
       @user.save
       Rails.logger.info "USER: User ##{@person.id} validated email successfully."
-      @admins = Person.where(:admin => true)
-      Emails.admin_user_validated(@admins, user)
-      Emails.welcome(@user).deliver!
+      Emails.admin_user_validated(@user.id)
+      Emails.welcome(@user.id).deliver!
     end
   end
 
@@ -84,8 +83,8 @@ end
 
 class Emails < ActionMailer::Base
 
-  def welcome(person)
-    @person = person
+  def welcome(person_id)
+    @person = Person.find( person_id )
     mail to: @person, from: 'foo@example.com'
   end
 
@@ -94,9 +93,9 @@ class Emails < ActionMailer::Base
     mail to: @person.email, from: 'foo@example.com'
   end
 
-  def admin_user_validated(admins, user)
+  def admin_user_validated(admins, person_id)
     @admins = Person.admin_emails
-    @user = user
+    @user = Person.find( person_id )
     mail to: @admins, from: 'foo@example.com'
   end
 
