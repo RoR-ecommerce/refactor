@@ -7,8 +7,6 @@ class People < ActionController::Base
   def create
     @person = Person.new(params[:person])
 
-    @person.admin = false
-
     if @person.save
       Emails.validate_email(@person).deliver
       @admins = Person.where(:admin => true)
@@ -46,7 +44,7 @@ class Person < ActiveRecord::Base
   # validates :admin,  :presence => true # default this to false in the migration
   validates :slug,  :presence => true
 
-  before_validation :set_slug, :on => :create
+  before_validation :set_defaults, :on => :create
 
   def handle
     "#{team}#{id}"
@@ -59,8 +57,17 @@ class Person < ActiveRecord::Base
   private
 
   # I don't like this slug.  Why do we need it?
+
+  def set_defaults
+    set_slug
+    set_admin
+  end
+
   def set_slug
     self.slug = "ABC123#{Time.now.to_i.to_s}1239827#{rand(10000)}"
+  end
+  def set_admin
+    self.admin = false if admin.nil?
   end
 end
 
