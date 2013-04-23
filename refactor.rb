@@ -6,11 +6,7 @@ class People < ActionController::Base
 
   def create
     @person = Person.new(params[:person])
-
     if @person.save
-      Emails.validate_email(@person).deliver
-      @admins = Person.where(:admin => true)
-      Emails.admin_new_user(@admins, @person).deliver
       redirect_to @person, :notice => "Account added!"
     else
       render :new
@@ -45,6 +41,7 @@ class Person < ActiveRecord::Base
   validates :slug,  :presence => true
 
   before_validation :set_defaults, :on => :create
+  after_create :send_welcome_emails
 
   def handle
     "#{team}#{id}"
@@ -54,15 +51,26 @@ class Person < ActiveRecord::Base
     id.odd? ? "UnicornRainbows" : "LaserScorpions"
   end
 
+  def self.admin_emails
+    Person.admin.pluck(:email)
+  end
+
+  def self.admin
+    where(:admin => true)
+  end
+
   private
 
-  # I don't like this slug.  Why do we need it?
+  def send_welcome_emails
+    Emails.validate_email(self.id).deliver
+    Emails.admin_new_user(self.id).deliver
+  end
 
   def set_defaults
     set_slug
     set_admin
   end
-
+  # I don't like this slug.  Why do we need it?
   def set_slug
     self.slug = "ABC123#{Time.now.to_i.to_s}1239827#{rand(10000)}"
   end
@@ -81,27 +89,27 @@ class Emails < ActionMailer::Base
     mail to: @person, from: 'foo@example.com'
   end
 
-  def validate_email(person)
-    @person = person
-    mail to: @person, from: 'foo@example.com'
+  def validate_email(person_id)
+    @person = Person.find( person_id )
+    mail to: @person.email, from: 'foo@example.com'
   end
 
   def admin_user_validated(admins, user)
-    @admins = admins.collect {|a| a.email } rescue []
+    @admins = Person.admin_emails
     @user = user
     mail to: @admins, from: 'foo@example.com'
   end
 
-  def admin_new_user(admins, user)
-    @admins = admins.collect {|a| a.email } rescue []
-    @user = user
+  def admin_new_user(person_id)
+    @admins = Person.admin_emails
+    @user = Person.find(person_id)
     mail to: @admins, from: 'foo@example.com'
   end
 
   def admin_removing_unvalidated_users(admins, users)
-    @admins = admins.collect {|a| a.email } rescue []
+    @admins = Person.admin_emails
     @users = users
-    mail to: admins, from: 'foo@example.com'
+    mail to: @admins, from: 'foo@example.com'
   end
 
 end
