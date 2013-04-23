@@ -51,7 +51,8 @@ end
 # Model
 
 class Person < ActiveRecord::Base
-  attr_accessible :first_name, :last_name, :email, :admin, :slug, :validated, :handle, :team
+  # Looks like :handle, :team are not set by user.  ASK BUSINESS REQs
+  attr_accessible :first_name, :last_name, :email, :admin, :slug, :validated
 end
 
 
